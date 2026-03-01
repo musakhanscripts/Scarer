@@ -1,0 +1,208 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local TweenService = game:GetService("TweenService")
+
+local Window = Rayfield:CreateWindow({
+   Name = "Musa's Scare Script",
+   LoadingTitle = "Identity Fraud Edition",
+   LoadingSubtitle = "by Gemini",
+   ConfigurationSaving = { Enabled = true, FolderName = "MusasScareScript" },
+   KeySystem = true, 
+   KeySettings = {
+      Title = "Musa's Security",
+      Subtitle = "Enter Key",
+      Note = "Use Secret or Key67",
+      FileName = "MusaKey",
+      SaveKey = true,
+      Key = {"Secret", "Key67"} 
+   }
+})
+
+local MainTab = Window:CreateTab("Main Hacks", 4483362458)
+local AnimTab = Window:CreateTab("Animations", 4483362458)
+
+--- 1. GHOST RUSH JUMPSCARE (10 STUDS)
+local SelectedTarget = nil
+local PlayerList = {}
+
+for _, v in pairs(game.Players:GetPlayers()) do
+    if v ~= game.Players.LocalPlayer then
+        table.insert(PlayerList, v.Name)
+    end
+end
+
+local JumpscareDropdown = MainTab:CreateDropdown({
+   Name = "1. Select Target",
+   Options = PlayerList,
+   CurrentOption = {""},
+   MultipleOptions = false,
+   Flag = "JumpDropdown",
+   Callback = function(Option)
+      SelectedTarget = Option[1]
+   end,
+})
+
+MainTab:CreateButton({
+   Name = "2. ACTIVATE GHOST RUSH (10 STUDS)",
+   Callback = function()
+      if not SelectedTarget or SelectedTarget == "" then
+         Rayfield:Notify({Title = "Error", Content = "Select a player first!", Duration = 2})
+         return
+      end
+
+      local targetPlayer = game.Players:FindFirstChild(SelectedTarget)
+      local lp = game.Players.LocalPlayer
+      
+      if targetPlayer and targetPlayer.Character and lp.Character then
+         local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+         local myHRP = lp.Character:FindFirstChild("HumanoidRootPart")
+         
+         if targetHRP and myHRP then
+            local oldPos = myHRP.CFrame
+            
+            -- Target position: 10 studs in front of where they are looking
+            local jumpPos = targetHRP.CFrame * CFrame.new(0, 0, -10) * CFrame.Angles(0, math.pi, 0)
+            
+            -- Calculate Tween duration for a fast rush
+            local distance = (myHRP.Position - jumpPos.Position).Magnitude
+            local duration = distance / 70 -- High speed
+            
+            local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            
+            -- Rush In
+            local rushIn = TweenService:Create(myHRP, tweenInfo, {CFrame = jumpPos})
+            rushIn:Play()
+            rushIn.Completed:Wait()
+            
+            -- Stare for 2 seconds
+            task.wait(2)
+            
+            -- Rush Back
+            local rushOut = TweenService:Create(myHRP, tweenInfo, {CFrame = oldPos})
+            rushOut:Play()
+            
+            Rayfield:Notify({Title = "Jumpscare", Content = "Rushed " .. SelectedTarget .. " at 10 studs!", Duration = 2})
+         end
+      else
+         Rayfield:Notify({Title = "Error", Content = "Player not found or dead.", Duration = 2})
+      end
+   end,
+})
+
+-- Auto-Refresh Player List every 30 seconds
+task.spawn(function()
+   while true do
+      task.wait(30)
+      local NewList = {}
+      for _, v in pairs(game.Players:GetPlayers()) do
+          if v ~= game.Players.LocalPlayer then table.insert(NewList, v.Name) end
+      end
+      JumpscareDropdown:Refresh(NewList)
+   end
+end)
+
+--- 2. PLAYER ESP + NAMES
+MainTab:CreateToggle({
+   Name = "Player ESP + Usernames",
+   CurrentValue = false,
+   Flag = "ESPToggle",
+   Callback = function(Value)
+      _G.ESP = Value
+      task.spawn(function()
+         while _G.ESP do
+            for _, p in pairs(game.Players:GetPlayers()) do
+               if p ~= game.Players.LocalPlayer and p.Character then
+                  if not p.Character:FindFirstChild("MusaHighlight") then
+                     local h = Instance.new("Highlight", p.Character)
+                     h.Name = "MusaHighlight"
+                     h.FillColor = Color3.fromRGB(255, 0, 0)
+                  end
+                  if not p.Character:FindFirstChild("MusaName") then
+                     local b = Instance.new("BillboardGui", p.Character)
+                     b.Name = "MusaName"
+                     b.AlwaysOnTop = true
+                     b.Size = UDim2.new(0, 200, 0, 50)
+                     b.StudsOffset = Vector3.new(0, 3, 0)
+                     b.Adornee = p.Character:FindFirstChild("Head")
+                     local t = Instance.new("TextLabel", b)
+                     t.Parent = b
+                     t.Size = UDim2.new(1, 0, 1, 0)
+                     t.BackgroundTransparency = 1
+                     t.Text = p.Name
+                     t.TextColor3 = Color3.new(1, 1, 1)
+                     t.TextStrokeTransparency = 0
+                     t.TextScaled = true
+                  end
+               end
+            end
+            task.wait(2)
+         end
+         for _, p in pairs(game.Players:GetPlayers()) do
+            if p.Character then
+               if p.Character:FindFirstChild("MusaHighlight") then p.Character.MusaHighlight:Destroy() end
+               if p.Character:FindFirstChild("MusaName") then p.Character.MusaName:Destroy() end
+            end
+         end
+      end)
+   end,
+})
+
+--- 3. ZOOM OUT & SHIFTLOCK
+MainTab:CreateToggle({
+   Name = "Zoom Out & Shiftlock",
+   CurrentValue = false,
+   Flag = "CamHacks",
+   Callback = function(Value)
+      local lp = game.Players.LocalPlayer
+      if Value then
+         lp.CameraMaxZoomDistance = 100
+         lp.CameraMode = Enum.CameraMode.Classic
+         _G.SLock = game:GetService("RunService").RenderStepped:Connect(function()
+            game:GetService("UserInputService").MouseBehavior = Enum.MouseBehavior.LockCenter
+            if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+               local _, y, _ = workspace.CurrentCamera.CFrame:ToEulerAnglesYXZ()
+               lp.Character.HumanoidRootPart.CFrame = CFrame.new(lp.Character.HumanoidRootPart.Position) * CFrame.Angles(0, y, 0)
+            end
+         end)
+      else
+         lp.CameraMaxZoomDistance = 0.5
+         lp.CameraMode = Enum.CameraMode.LockFirstPerson
+         if _G.SLock then _G.SLock:Disconnect() end
+      end
+   end,
+})
+
+--- 4. NOCLIP
+MainTab:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Flag = "Noclip",
+   Callback = function(Value)
+      _G.Noclip = Value
+      game:GetService("RunService").Stepped:Connect(function()
+         if _G.Noclip and game.Players.LocalPlayer.Character then
+            for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+               if v:IsA("BasePart") then v.CanCollide = false end
+            end
+         end
+      end)
+   end,
+})
+
+--- 5. ANIMATIONS
+AnimTab:CreateToggle({
+   Name = "Killer Anim",
+   CurrentValue = false,
+   Flag = "KillerAnim",
+   Callback = function(Value)
+      if Value then loadstring(game:HttpGet("https://pastefy.app/riYch0rX/raw"))() end
+   end,
+})
+
+AnimTab:CreateToggle({
+   Name = "Psycho Anim",
+   CurrentValue = false,
+   Flag = "PsychoAnim",
+   Callback = function(Value)
+      if Value then loadstring(game:HttpGet("https://pastefy.app/YJITpCRA/raw"))() end
+   end,
+})
