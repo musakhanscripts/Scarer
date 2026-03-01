@@ -4,7 +4,7 @@ local TweenService = game:GetService("TweenService")
 local Window = Rayfield:CreateWindow({
    Name = "Musa's Scare Script",
    LoadingTitle = "Identity Fraud Edition",
-   LoadingSubtitle = "by Gemini",
+   LoadingSubtitle = "by Musa Scripts",
    ConfigurationSaving = { Enabled = true, FolderName = "MusasScareScript" },
    KeySystem = true, 
    KeySettings = {
